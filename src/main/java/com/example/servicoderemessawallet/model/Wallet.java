@@ -22,7 +22,7 @@ import java.util.UUID;
 public class Wallet implements Serializable {
 
     @Serial
-    private static final long serialVersionUID = -704234683282881237L;
+    private static final long serialVersionUID = -8948088955829954306L;
 
     @Id
     @GeneratedValue
@@ -30,7 +30,5 @@ public class Wallet implements Serializable {
 
     private BigDecimal balanceBrl;
     private BigDecimal balanceUsd;
-
-//    @OneToOne(mappedBy = "wallet")
-//    private User user;
+    private String email; // Adicionando email
 }

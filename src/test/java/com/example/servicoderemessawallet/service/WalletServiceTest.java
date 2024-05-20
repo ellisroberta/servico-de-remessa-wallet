@@ -58,7 +58,7 @@ public class WalletServiceTest {
 
     @Test
     public void testCreateWallet_UserAlreadyHasWallet() {
-        Mockito.when(walletRepository.findByUserId(userId)).thenReturn(wallet);
+        //Mockito.when(walletRepository.findByUserId(userId)).thenReturn(wallet);
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             walletService.createWallet(userId);
@@ -69,7 +69,7 @@ public class WalletServiceTest {
 
     @Test
     public void testFindWalletByUserId_Success() {
-        Mockito.when(walletRepository.findByUserId(userId)).thenReturn(wallet);
+        //Mockito.when(walletRepository.findByUserId(userId)).thenReturn(wallet);
 
         Wallet foundWallet = walletService.findWalletByUserId(userId);
 
