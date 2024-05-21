@@ -1,4 +1,4 @@
-package com.example.desafioservicoderemessa.config;
+package com.example.servicoderemessawallet.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +18,7 @@ public class SwaggerConfig {
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.example.desafioservicoderemessa.controller"))
+                .apis(RequestHandlerSelectors.basePackage("com.example.servicoderemessawallet.controller"))
                 .paths(PathSelectors.any())
                 .build()
                 .apiInfo(apiInfo());
@@ -26,8 +26,8 @@ public class SwaggerConfig {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("API de Serviço de Remessa")
-                .description("Documentação da API de Serviço de Remessa para transações entre carteiras.")
+                .title("API de Serviço de Remessa - Wallet Management")
+                .description("Documentação da API de Serviço de Remessa para gerenciamento de carteiras.")
                 .version("1.0")
                 .build();
     }
