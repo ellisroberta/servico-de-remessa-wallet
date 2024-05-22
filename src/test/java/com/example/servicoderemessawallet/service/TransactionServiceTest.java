@@ -1,14 +1,16 @@
 package com.example.servicoderemessawallet.service;
 
 //import com.example.servicoderemessawallet.exception.UserNotFoundException;
+
+import com.example.servicoderemessawallet.enums.TransactionStatusEnum;
+import com.example.servicoderemessawallet.exception.InsufficientBalanceException;
+import com.example.servicoderemessawallet.exception.WalletNotFoundException;
 import com.example.servicoderemessawallet.model.Transaction;
-//import com.example.servicoderemessawallet.model.User;
 import com.example.servicoderemessawallet.model.Wallet;
 import com.example.servicoderemessawallet.repository.TransactionRepository;
-//import com.example.servicoderemessawallet.repository.UserRepository;
 import com.example.servicoderemessawallet.repository.WalletRepository;
-//import com.example.servicoderemessawallet.utils.enums.UserTypeEnum;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,91 +18,138 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.util.AssertionErrors.assertEquals;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class TransactionServiceTest {
 
-//    @Mock
-//    private UserRepository userRepository;
+    @Mock
+    private TransactionRepository transactionRepository;
 
     @Mock
     private WalletRepository walletRepository;
 
     @Mock
-    private TransactionRepository transactionRepository;
+    private ExchangeRateService exchangeRateService;
 
     @InjectMocks
     private TransactionService transactionService;
 
-//    private User fromUser;
-//    private User toUser;
-    private Wallet fromWallet;
-    private Wallet toWallet;
+    @Test
+    @DisplayName("Teste de criação de transação - Sucesso")
+    public void testCreateTransactionSuccess() {
+        // Given
+        UUID walletId = UUID.randomUUID();
+        UUID fromUserId = UUID.randomUUID();
+        UUID toUserId = UUID.randomUUID();
+        BigDecimal amountBrl = BigDecimal.TEN;
+        BigDecimal exchangeRate = BigDecimal.valueOf(5.0); // Exemplo de taxa de câmbio
+        BigDecimal amountUsd = amountBrl.divide(exchangeRate, 2, BigDecimal.ROUND_HALF_UP);
+        Wallet fromWallet = Wallet.builder()
+                .id(UUID.randomUUID())
+                .balanceBrl(BigDecimal.valueOf(20.0))
+                .balanceUsd(BigDecimal.ZERO)
+                .build();
+        Wallet toWallet = Wallet.builder()
+                .id(UUID.randomUUID())
+                .balanceBrl(BigDecimal.ZERO)
+                .balanceUsd(BigDecimal.ZERO)
+                .build();
 
-    @BeforeEach
-    public void setUp() {
-        fromWallet = new Wallet();
-        fromWallet.setBalanceBrl(new BigDecimal("10000"));
+        // Mocks
+        when(walletRepository.findByUserId(fromUserId)).thenReturn(Optional.of(fromWallet));
+        when(walletRepository.findByUserId(toUserId)).thenReturn(Optional.of(toWallet));
+        when(exchangeRateService.getDollarExchangeRate()).thenReturn(exchangeRate);
+        when(walletRepository.save(any(Wallet.class))).thenReturn(fromWallet, toWallet);
+        when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> {
+            Transaction transaction = invocation.getArgument(0);
+            transaction.setId(UUID.randomUUID());
+            return transaction;
+        });
 
-        toWallet = new Wallet();
-        toWallet.setBalanceUsd(new BigDecimal("1000"));
+        // When
+        Transaction createdTransaction = transactionService.createTransaction(fromUserId, toUserId, amountBrl);
 
-//        fromUser = new User();
-//        fromUser.setId(UUID.randomUUID());
-//        fromUser.setUserType(UserTypeEnum.PF);
-//        fromUser.setWallet(fromWallet);
-//
-//        toUser = new User();
-//        toUser.setId(UUID.randomUUID());
-//        toUser.setUserType(UserTypeEnum.PF);
-//        toUser.setWallet(toWallet);
+        // Then
+        Assertions.assertNotNull(createdTransaction);
+        Assertions.assertEquals(fromWallet.getId(), createdTransaction.getWalletId());
+        Assertions.assertEquals(fromUserId, createdTransaction.getFromUserId());
+        Assertions.assertEquals(toUserId, createdTransaction.getToUserId());
+        Assertions.assertEquals(amountBrl, createdTransaction.getAmountBrl());
+        Assertions.assertEquals(amountUsd, createdTransaction.getAmountUsd());
+        Assertions.assertEquals(exchangeRate, createdTransaction.getExchangeRate());
+        Assertions.assertEquals(TransactionStatusEnum.PENDING, createdTransaction.getStatus());
+
+        verify(walletRepository, times(1)).findByUserId(fromUserId);
+        verify(walletRepository, times(1)).findByUserId(toUserId);
+        verify(walletRepository, times(1)).save(eq(fromWallet));
+        verify(walletRepository, times(1)).save(eq(toWallet));
+        verify(transactionRepository, times(1)).save(any(Transaction.class));
     }
 
-//    @Test
-//    void testCreateTransaction() {
-//        BigDecimal amountBrl = new BigDecimal("500");
-//        BigDecimal exchangeRate = new BigDecimal("5.0");
+    @Test
+    @DisplayName("Teste de criação de transação - Saldo Insuficiente")
+    public void testCreateTransactionInsufficientBalance() {
+        // Given
+        UUID fromUserId = UUID.randomUUID();
+        UUID toUserId = UUID.randomUUID();
+        BigDecimal amountBrl = BigDecimal.valueOf(30.0); // Valor maior que o saldo disponível
 
-//        when(userRepository.findById(fromUser.getId())).thenReturn(Optional.of(fromUser));
-//        when(userRepository.findById(toUser.getId())).thenReturn(Optional.of(toUser));
-//        when(transactionRepository.sumTransactionsByUserAndDate(any(), any())).thenReturn(BigDecimal.ZERO);
-//
-//        Transaction mockTransaction = new Transaction();
-//        mockTransaction.setFromUser(fromUser);
-//        mockTransaction.setToUser(toUser);
-//        mockTransaction.setAmountBrl(amountBrl);
-//        mockTransaction.setAmountUsd(amountBrl.divide(exchangeRate, 2, RoundingMode.HALF_UP));
-//        mockTransaction.setExchangeRate(exchangeRate);
-//        mockTransaction.setDate(LocalDateTime.now());
-//
-//        when(transactionRepository.save(any(Transaction.class))).thenReturn(mockTransaction);
+        // Criação da Wallet de origem com saldo insuficiente
+        Wallet fromWallet = Wallet.builder()
+                .id(UUID.randomUUID())
+                .balanceBrl(BigDecimal.TEN) // Saldo insuficiente
+                .balanceUsd(BigDecimal.ZERO)
+                .build();
 
-//        Transaction result = transactionService.createTransaction(fromUser.getId(), toUser.getId(), amountBrl, exchangeRate);
-//
-//        assertEquals(fromUser, result.getFromUser());
-//        assertEquals(toUser, result.getToUser());
-//        assertEquals(amountBrl, result.getAmountBrl());
-//        assertEquals(amountBrl.divide(exchangeRate, 2, RoundingMode.HALF_UP), result.getAmountUsd());
-//        assertEquals(exchangeRate, result.getExchangeRate());
-//    }
+        // Criação da Wallet de destino
+        Wallet toWallet = Wallet.builder()
+                .id(UUID.randomUUID())
+                .balanceBrl(BigDecimal.ZERO)
+                .balanceUsd(BigDecimal.ZERO)
+                .build();
 
-//    @Test
-//    void testCreateTransaction_UserNotFound() {
-//        UUID invalidUserId = UUID.randomUUID();
-//
-//        when(userRepository.findById(invalidUserId)).thenReturn(Optional.empty());
-//
-//        assertThrows(UserNotFoundException.class, () -> {
-//            transactionService.createTransaction(invalidUserId, toUser.getId(), new BigDecimal("500"), new BigDecimal("5.0"));
-//        });
-//    }
+        // Configuração do mock do walletRepository para retornar a fromWallet e toWallet
+        when(walletRepository.findByUserId(fromUserId)).thenReturn(Optional.of(fromWallet));
+        when(walletRepository.findByUserId(toUserId)).thenReturn(Optional.of(toWallet));
+
+        // When/Then
+        InsufficientBalanceException exception = Assertions.assertThrows(InsufficientBalanceException.class,
+                () -> transactionService.createTransaction(fromUserId, toUserId, amountBrl),
+                "Saldo insuficiente");
+
+        Assertions.assertEquals("Saldo insuficiente na carteira de origem", exception.getMessage());
+
+        // Verificações
+        verify(walletRepository, times(1)).findByUserId(fromUserId);
+        verify(walletRepository, times(1)).findByUserId(toUserId);
+        verify(walletRepository, never()).save(any(Wallet.class));
+        verify(transactionRepository, never()).save(any(Transaction.class));
+    }
+
+    @Test
+    @DisplayName("Teste de criação de transação - Carteira não encontrada")
+    public void testCreateTransactionWalletNotFound() {
+        // Given
+        UUID fromUserId = UUID.randomUUID();
+        UUID toUserId = UUID.randomUUID();
+        BigDecimal amountBrl = BigDecimal.TEN;
+        when(walletRepository.findByUserId(fromUserId)).thenReturn(Optional.empty());
+
+        // When/Then
+        WalletNotFoundException exception = Assertions.assertThrows(WalletNotFoundException.class,
+                () -> transactionService.createTransaction(fromUserId, toUserId, amountBrl),
+                "Carteira não encontrada para o usuário: " + fromUserId);
+
+        Assertions.assertEquals("Carteira não encontrada para o usuário: " + fromUserId, exception.getMessage());
+
+        // Verificações
+        verify(walletRepository, times(1)).findByUserId(fromUserId);
+        verify(walletRepository, never()).findByUserId(toUserId);
+        verify(walletRepository, never()).save(any(Wallet.class));
+        verify(transactionRepository, never()).save(any(Transaction.class));
+    }
 }

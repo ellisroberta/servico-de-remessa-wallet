@@ -1,13 +1,12 @@
 package com.example.servicoderemessawallet.model;
 
-import com.example.servicoderemessawallet.enums.TransactionTypeEnum;
+import com.example.servicoderemessawallet.enums.TransactionStatusEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,19 +18,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Transaction implements Serializable {
-    @Serial
-    private static final long serialVersionUID = -8200813275894988737L;
-
-    public Transaction(UUID walletId, UUID fromUserId, UUID toUserId, BigDecimal amountBrl, BigDecimal amountUsd,
-                       TransactionTypeEnum transactionType) {
-        this.walletId = walletId;
-        this.fromUserId = fromUserId;
-        this.toUserId = toUserId;
-        this.amountBrl = amountBrl;
-        this.amountUsd = amountUsd;
-        this.transactionType = transactionType;
-        this.date = LocalDateTime.now(); // Define a data/hora da transação para o momento atual
-    }
 
     @Id
     @GeneratedValue
@@ -52,7 +38,7 @@ public class Transaction implements Serializable {
     private BigDecimal exchangeRate;
 
     private LocalDateTime date;
-    private TransactionTypeEnum transactionType;
+    private TransactionStatusEnum status;
 
     @PrePersist
     protected void onCreate() {

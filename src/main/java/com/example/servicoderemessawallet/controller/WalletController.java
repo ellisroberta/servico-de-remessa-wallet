@@ -1,48 +1,66 @@
 package com.example.servicoderemessawallet.controller;
 
 import com.example.servicoderemessawallet.model.Wallet;
+import com.example.servicoderemessawallet.repository.WalletRepository;
 import com.example.servicoderemessawallet.service.WalletService;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/servico-de-remessa/wallets")
-@Api(tags = "Carteiras", description = "Endpoints para operações relacionadas às carteiras dos usuários")
+@RequestMapping("/api/wallets")
+@Api(tags = "Carteiras")
 public class WalletController {
 
-    @Autowired
     private WalletService walletService;
+    private final WalletRepository walletRepository;
 
-    // Endpoint para encontrar uma carteira por ID de usuário
-    @ApiOperation(value = "Obter informações de uma carteira",
-            notes = "Retorna informações detalhadas de uma carteira baseado no ID do usuário.")
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<Wallet> findWalletByUserId(@PathVariable UUID userId) {
-        Wallet wallet = walletService.findWalletByUserId(userId);
-        if (wallet != null) {
-            return ResponseEntity.ok(wallet);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public WalletController(WalletRepository walletRepository) {
+        this.walletRepository = walletRepository;
     }
 
-    // Endpoint para criar uma nova carteira para um usuário
-    @ApiOperation(value = "Criar uma nova carteira",
-            notes = "Cria uma nova carteira para um usuário com base no ID do usuário.")
-    @PostMapping("/{userId}")
-    public ResponseEntity<Wallet> createWallet(@PathVariable UUID userId) {
-        try {
-            Wallet createdWallet = walletService.createWallet(userId);
-            return ResponseEntity.ok(createdWallet);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(null); // ou qualquer outra resposta apropriada para tratamento de erro
-        }
+    @GetMapping("/{userId}")
+    public ResponseEntity<Wallet> getWalletByUserId(@PathVariable UUID userId) {
+        // Busca a Wallet pelo userId
+        return walletRepository.findByUserId(userId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    // Outros endpoints conforme necessário para CRUD de Wallets
+    @GetMapping
+    public List<Wallet> getAllWallets() {
+        // Retorna todas as Wallets cadastradas
+        return walletRepository.findAll();
+    }
+
+    @PostMapping
+    public ResponseEntity<Wallet> createWallet(@RequestBody Wallet wallet) {
+        // Cria uma nova Wallet
+        Wallet newWallet = walletRepository.save(wallet);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newWallet);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Wallet> updateWallet(@PathVariable UUID id, @RequestBody Wallet updatedWallet) {
+        // Atualiza uma Wallet existente
+        return walletRepository.findById(id)
+                .map(existingWallet -> {
+                    existingWallet.setBalanceBrl(updatedWallet.getBalanceBrl());
+                    existingWallet.setBalanceUsd(updatedWallet.getBalanceUsd());
+                    Wallet savedWallet = walletRepository.save(existingWallet);
+                    return ResponseEntity.ok().body(savedWallet);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteWallet(@PathVariable UUID id) {
+        // Deleta uma Wallet pelo ID
+        walletRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
 }

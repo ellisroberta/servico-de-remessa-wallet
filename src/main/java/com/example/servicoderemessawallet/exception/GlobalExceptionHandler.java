@@ -12,10 +12,10 @@ import java.util.Date;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-//    @ExceptionHandler(UserNotFoundException.class)
-//    public ResponseEntity<String> handleUserNotFoundException(UserNotFoundException ex) {
-//        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-//    }
+    @ExceptionHandler(WalletNotFoundException.class)
+    public ResponseEntity<String> handleWalletNotFoundException(WalletNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
 
     @ExceptionHandler(InsufficientBalanceException.class)
     public ResponseEntity<String> handleInsufficientBalanceException(InsufficientBalanceException ex) {

@@ -1,54 +1,36 @@
 package com.example.servicoderemessawallet.controller;
 
 import com.example.servicoderemessawallet.model.Transaction;
-import com.example.servicoderemessawallet.service.ExchangeRateService;
 import com.example.servicoderemessawallet.service.TransactionService;
-import com.example.servicoderemessawallet.service.WalletService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/servico-de-remessa/transactions")
+@RequestMapping("/api/transactions")
+@Api(tags = "Transações")
 public class TransactionController {
 
-    @Autowired
     private TransactionService transactionService;
 
-    @Autowired
-    private WalletService walletService;
+    @ApiOperation("Obtém uma lista de todas as transações")
+    @GetMapping
+    public ResponseEntity<List<Transaction>> getAllTransactions() {
+        List<Transaction> transactions = transactionService.getAllTransactions();
+        return ResponseEntity.ok(transactions);
+    }
 
-    @Autowired
-    private ExchangeRateService exchangeRateService;
-
-    @ApiOperation("Cria uma nova transação entre carteiras.")
-    @PostMapping
-    public ResponseEntity<Transaction> createTransaction(
-            @RequestParam UUID fromUserId,
-            @RequestParam UUID toUserId,
-            @RequestParam @Valid BigDecimal amountBrl) {
-
-        // Validação dos parâmetros de entrada
-        if (fromUserId == null || toUserId == null || amountBrl.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Parâmetros inválidos para criar transação.");
-        }
-
-        // Obter taxa de câmbio do dólar
-        BigDecimal exchangeRate = exchangeRateService.getDollarExchangeRate();
-
-        // Criar a transação
-        Transaction transaction = transactionService.createTransaction(fromUserId, toUserId, amountBrl, exchangeRate);
-
-        // Retornar a transação criada com status 201 Created
-        return ResponseEntity.status(HttpStatus.CREATED).body(transaction);
+    @ApiOperation("Obtém uma transação por ID")
+    @GetMapping("/{transactionId}")
+    public ResponseEntity<Transaction> getTransactionById(@PathVariable UUID transactionId) {
+        Transaction transaction = transactionService.getTransactionById(transactionId);
+        return ResponseEntity.ok(transaction);
     }
 }

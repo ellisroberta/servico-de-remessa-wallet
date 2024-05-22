@@ -21,14 +21,10 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Wallet implements Serializable {
 
-    @Serial
-    private static final long serialVersionUID = -8948088955829954306L;
-
     @Id
     @GeneratedValue
     private UUID id;
 
     private BigDecimal balanceBrl;
     private BigDecimal balanceUsd;
-    private String email; // Adicionando email
 }
