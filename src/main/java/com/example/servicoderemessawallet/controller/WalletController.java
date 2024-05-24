@@ -24,7 +24,6 @@ public class WalletController {
 
     @GetMapping("/{userId}")
     public ResponseEntity<Wallet> getWalletByUserId(@PathVariable UUID userId) {
-        // Busca a Wallet pelo userId
         return walletRepository.findByUserId(userId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -32,20 +31,17 @@ public class WalletController {
 
     @GetMapping
     public List<Wallet> getAllWallets() {
-        // Retorna todas as Wallets cadastradas
         return walletRepository.findAll();
     }
 
     @PostMapping
     public ResponseEntity<Wallet> createWallet(@RequestBody Wallet wallet) {
-        // Cria uma nova Wallet
         Wallet newWallet = walletRepository.save(wallet);
         return ResponseEntity.status(HttpStatus.CREATED).body(newWallet);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Wallet> updateWallet(@PathVariable UUID id, @RequestBody Wallet updatedWallet) {
-        // Atualiza uma Wallet existente
         return walletRepository.findById(id)
                 .map(existingWallet -> {
                     existingWallet.setBalanceBrl(updatedWallet.getBalanceBrl());

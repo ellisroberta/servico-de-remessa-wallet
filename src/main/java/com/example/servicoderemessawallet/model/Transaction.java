@@ -27,12 +27,10 @@ public class Transaction implements Serializable {
 
     private UUID walletId;
 
-    //@ManyToOne
     @JoinColumn(name = "from_user_id", nullable = false)
     @Type(type = "uuid-char")
     private UUID fromUserId;
 
-    //@ManyToOne
     @JoinColumn(name = "to_user_id", nullable = false)
     @Type(type = "uuid-char")
     private UUID toUserId;
