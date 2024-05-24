@@ -24,7 +24,7 @@ public class UUIDTypeContributor implements TypeContributor {
 
         @Override
         public String getName() {
-            return "uuid"; // Nome do tipo registrado para o Hibernate
+            return "uuid";
         }
     }
 }

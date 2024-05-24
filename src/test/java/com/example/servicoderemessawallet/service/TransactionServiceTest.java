@@ -90,7 +90,6 @@ class TransactionServiceTest {
         UUID toUserId = UUID.randomUUID();
         BigDecimal amountBrl = BigDecimal.valueOf(30.0); // Valor maior que o saldo disponível
 
-        // Criação da Wallet de origem com saldo insuficiente
         Wallet fromWallet = Wallet.builder()
                 .id(UUID.randomUUID())
                 .userId(fromUserId)
@@ -98,7 +97,6 @@ class TransactionServiceTest {
                 .balanceUsd(BigDecimal.ZERO)
                 .build();
 
-        // Criação da Wallet de destino
         Wallet toWallet = Wallet.builder()
                 .id(UUID.randomUUID())
                 .userId(toUserId)
@@ -106,7 +104,6 @@ class TransactionServiceTest {
                 .balanceUsd(BigDecimal.ZERO)
                 .build();
 
-        // Configuração do mock do walletRepository para retornar a fromWallet e toWallet
         when(walletRepository.findByUserId(fromUserId)).thenReturn(Optional.of(fromWallet));
         when(walletRepository.findByUserId(toUserId)).thenReturn(Optional.of(toWallet));
 
