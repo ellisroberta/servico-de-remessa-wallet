@@ -91,7 +91,6 @@ public class TransactionService {
         walletRepository.save(fromWallet);
         walletRepository.save(toWallet);
 
-        // Salvar a transação no repositório
         Transaction transaction = Transaction.builder()
                 .walletId(transactionDTO.getWalletId())
                 .fromUserId(transactionDTO.getFromUserId())

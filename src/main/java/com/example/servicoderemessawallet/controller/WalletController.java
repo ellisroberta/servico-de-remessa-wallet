@@ -64,7 +64,6 @@ public class WalletController {
     @ApiOperation(value = "Deletar carteira", notes = "Deleta uma carteira pelo ID.")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteWallet(@PathVariable UUID id) {
-        // Deleta uma Wallet pelo ID
         walletRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
