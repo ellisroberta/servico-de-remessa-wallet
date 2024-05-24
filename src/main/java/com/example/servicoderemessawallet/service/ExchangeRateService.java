@@ -55,22 +55,17 @@ public class ExchangeRateService {
     }
 
     public void updateDollarExchangeRate(LocalDate date) {
-        if (isWeekend(date)) {
-            logger.info("É final de semana. Usando a última cotação disponível.");
-            return;
-        }
-
         updateExchangeRateForDate(date);
     }
 
     public void updateExchangeRateForDate(LocalDate date) {
-        String formattedDate = DATE_FORMATTER.format(date);
-        URI uri = UriComponentsBuilder.fromUriString(EXCHANGE_RATE_API_URL)
-                .queryParam("data", formattedDate)
-                .build()
-                .toUri();
-
         try {
+            String formattedDate = DATE_FORMATTER.format(date);
+            URI uri = UriComponentsBuilder.fromUriString(EXCHANGE_RATE_API_URL)
+                    .queryParam("data", formattedDate)
+                    .build()
+                    .toUri();
+
             ResponseEntity<Map<String, Object>> responseEntity = restTemplate.exchange(
                     uri,
                     HttpMethod.GET,
@@ -78,38 +73,32 @@ public class ExchangeRateService {
                     new ParameterizedTypeReference<Map<String, Object>>() {}
             );
 
-            if (responseEntity.hasBody()) {
-                Map<String, Object> response = responseEntity.getBody();
-                if (response != null && response.containsKey("value")) {
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    List<Map<String, Object>> value = objectMapper.convertValue(
-                            response.get("value"),
-                            new TypeReference<List<Map<String, Object>>>() {}
-                    );
-
-                    if (!value.isEmpty()) {
-                        Map<String, Object> firstItem = value.get(0);
-                        Object cotacaoCompra = firstItem.get("cotacaoCompra");
-                        if (cotacaoCompra instanceof Number) {
-                            BigDecimal cotacao = new BigDecimal(cotacaoCompra.toString());
-                            lastValidExchangeRate = cotacao;
-
-                            ExchangeRate exchangeRate = new ExchangeRate();
-                            exchangeRate.setDate(date);
-                            exchangeRate.setRate(lastValidExchangeRate);
-                            exchangeRateRepository.save(exchangeRate);
-                        } else {
-                            throw new ExchangeRateException("Valor de 'cotacaoCompra' inválido na resposta da API.");
-                        }
-                    } else {
-                        throw new ExchangeRateException("Lista de valores 'value' está vazia na resposta da API.");
-                    }
-                } else {
-                    throw new ExchangeRateException("Chave 'value' ausente na resposta da API.");
-                }
-            } else {
+            if (!responseEntity.hasBody()) {
                 throw new ExchangeRateException("Resposta inválida ou vazia da API.");
             }
+
+            Map<String, Object> response = responseEntity.getBody();
+            if (response == null || !response.containsKey("value")) {
+                throw new ExchangeRateException("Chave 'value' ausente na resposta da API.");
+            }
+
+            List<Map<String, Object>> value = (List<Map<String, Object>>) response.get("value");
+            if (value.isEmpty()) {
+                throw new ExchangeRateException("Lista de valores 'value' está vazia na resposta da API.");
+            }
+
+            Object cotacaoCompra = value.get(0).get("cotacaoCompra");
+            if (!(cotacaoCompra instanceof Number)) {
+                throw new ExchangeRateException("Valor de 'cotacaoCompra' inválido na resposta da API.");
+            }
+
+            lastValidExchangeRate = new BigDecimal(cotacaoCompra.toString());
+
+            ExchangeRate exchangeRate = new ExchangeRate();
+            exchangeRate.setDate(date);
+            exchangeRate.setRate(lastValidExchangeRate);
+            exchangeRateRepository.save(exchangeRate);
+
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             throw new ExchangeRateException("Erro ao acessar a API do Banco Central: " + e.getMessage(), e);
         } catch (Exception e) {
