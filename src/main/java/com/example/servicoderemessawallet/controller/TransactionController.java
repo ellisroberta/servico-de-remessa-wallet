@@ -20,6 +20,10 @@ public class TransactionController {
 
     private TransactionService transactionService;
 
+    public TransactionController (TransactionService transactionService){
+        this.transactionService = transactionService;
+    }
+
     @ApiOperation("Obtém uma lista de todas as transações")
     @GetMapping
     public ResponseEntity<List<Transaction>> getAllTransactions() {

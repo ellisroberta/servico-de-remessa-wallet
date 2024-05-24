@@ -1,3 +1,5 @@
+-- src/main/resources/db/migration/V2__data.sql
+
 -- Criando carteiras
 
 -- Carteira 1 (Pessoa Física)

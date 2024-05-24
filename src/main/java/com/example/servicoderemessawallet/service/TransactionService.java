@@ -18,16 +18,22 @@ import java.util.UUID;
 @Service
 public class TransactionService {
 
-    private WalletRepository walletRepository;
-    private TransactionRepository transactionRepository;
-    private ExchangeRateService exchangeRateService;
+    private final WalletRepository walletRepository;
+    private final TransactionRepository transactionRepository;
+    private final ExchangeRateService exchangeRateService;
 
-    @Transactional
+    public TransactionService(WalletRepository walletRepository,
+                              TransactionRepository transactionRepository,
+                              ExchangeRateService exchangeRateService) {
+        this.walletRepository = walletRepository;
+        this.transactionRepository = transactionRepository;
+        this.exchangeRateService = exchangeRateService;
+    }
+
     public List<Transaction> getAllTransactions() {
         return transactionRepository.findAll();
     }
 
-    @Transactional
     public Transaction getTransactionById(UUID transactionId) {
         return transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new RuntimeException("Transação não encontrada: " + transactionId));

@@ -17,6 +17,7 @@ import java.util.UUID;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "tb_transaction")
 public class Transaction implements Serializable {
 
     @Id
@@ -35,13 +36,8 @@ public class Transaction implements Serializable {
 
     private BigDecimal amountBrl;
     private BigDecimal amountUsd;
-    private BigDecimal exchangeRate;
-
-    private LocalDateTime date;
+    @Embedded
+    private ExchangeRate exchangeRate;
+    @Enumerated(EnumType.STRING)
     private TransactionStatusEnum status;
-
-    @PrePersist
-    protected void onCreate() {
-        date = LocalDateTime.now();
-    }
 }

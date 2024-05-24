@@ -1,6 +1,6 @@
 version: '3.7'
 services:
-  desafio-servico-de-remessa:
+  servico-de-remessa-wallet:
     build: .
     ports:
       - "8080:8080"
@@ -8,3 +8,12 @@ services:
       SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb
       SPRING_DATASOURCE_USERNAME: sa
       SPRING_DATASOURCE_PASSWORD: password
+      SPRING_RABBITMQ_HOST: localhost
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"

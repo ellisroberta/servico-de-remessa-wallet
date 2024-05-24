@@ -12,20 +12,25 @@ import java.util.UUID;
 @Component
 public class TransactionListener {
 
-    private TransactionService transactionService;
+    private final TransactionService transactionService;
+    private final WalletService walletService;
+    private final ExchangeRateService exchangeRateService;
 
-    private WalletService walletService;
-    private ExchangeRateService exchangeRateService;
+    public TransactionListener(TransactionService transactionService,
+                               WalletService walletService,
+                               ExchangeRateService exchangeRateService){
+        this.transactionService = transactionService;
+        this.walletService = walletService;
+        this.exchangeRateService = exchangeRateService;
+    }
 
     @RabbitListener(queues = "transactionQueue")
     public void handleTransactionMessage(String message) {
-        // Parse the message (assuming it's a simple comma-separated format for this example)
         String[] parts = message.split(",");
         UUID fromUserId = UUID.fromString(parts[0]);
         UUID toUserId = UUID.fromString(parts[1]);
         BigDecimal amountBrl = new BigDecimal(parts[2]);
 
-        // Criar a transação
         transactionService.createTransaction(fromUserId, toUserId, amountBrl);
     }
 }

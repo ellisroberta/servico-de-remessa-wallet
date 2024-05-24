@@ -16,7 +16,6 @@ import java.util.UUID;
 @Api(tags = "Carteiras")
 public class WalletController {
 
-    private WalletService walletService;
     private final WalletRepository walletRepository;
 
     public WalletController(WalletRepository walletRepository) {

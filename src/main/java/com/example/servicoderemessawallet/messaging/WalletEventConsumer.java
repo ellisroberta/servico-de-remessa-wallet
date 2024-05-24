@@ -63,7 +63,6 @@ public class WalletEventConsumer {
 
         } catch (Exception e) {
             logger.error("Erro ao processar mensagem do RabbitMQ: {}", transaction, e);
-            // Lidar com o erro conforme necessário, como lançar uma exceção ou registrar o erro
         }
     }
 }
