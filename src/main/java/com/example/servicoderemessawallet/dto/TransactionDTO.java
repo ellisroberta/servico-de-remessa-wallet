@@ -10,6 +10,7 @@ import java.util.UUID;
 @Data
 public class TransactionDTO {
 
+    private UUID transactionId;
     private UUID walletId;
     private UUID fromUserId;
     private UUID toUserId;

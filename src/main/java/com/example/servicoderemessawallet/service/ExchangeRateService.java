@@ -5,6 +5,8 @@ import com.example.servicoderemessawallet.model.ExchangeRate;
 import com.example.servicoderemessawallet.repository.ExchangeRateRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,8 @@ import java.util.Map;
 
 @Service
 public class ExchangeRateService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ExchangeRateService.class);
     private static final String EXCHANGE_RATE_API_URL = "https://dadosabertos.bcb.gov.br/dataset/dolaramericano-usd-todos-os-boletins-diarios/resource/22ab054cb3ff-4864-82f7-b2815c7a77ec";
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("MM-dd-yyyy");
 
@@ -37,26 +41,20 @@ public class ExchangeRateService {
         this.exchangeRateRepository = exchangeRateRepository;
     }
 
-    @Scheduled(cron = "0 0 9 * * *") // Agendado para rodar todos os dias às 9h
+    @Scheduled(cron = "0 0 9 * * MON-FRI") // Agendado para rodar de segunda a sexta-feira às 9h
     public void updateExchangeRate() {
         LocalDate today = LocalDate.now();
-
-        if (isWeekend(today)) {
-            System.out.println("É final de semana. Usando a última cotação disponível.");
-            return;
-        }
-
         try {
             updateExchangeRateForDate(today);
-            System.out.println("Cotação atualizada para: " + lastValidExchangeRate);
+            logger.info("Cotação atualizada para: {}", lastValidExchangeRate);
         } catch (ExchangeRateException e) {
-            System.out.println("Falha ao atualizar cotação: " + e.getMessage());
+            logger.error("Falha ao atualizar cotação: {}", e.getMessage());
         }
     }
 
     public void updateDollarExchangeRate(LocalDate date) {
         if (isWeekend(date)) {
-            System.out.println("É final de semana. Usando a última cotação disponível.");
+            logger.info("É final de semana. Usando a última cotação disponível.");
             return;
         }
 

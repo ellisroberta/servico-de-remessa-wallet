@@ -1,17 +1,20 @@
 package com.example.servicoderemessawallet.messaging;
 
+import com.example.servicoderemessawallet.dto.TransactionDTO;
+import com.example.servicoderemessawallet.enums.TransactionStatusEnum;
 import com.example.servicoderemessawallet.model.Transaction;
 import com.example.servicoderemessawallet.model.Wallet;
 import com.example.servicoderemessawallet.repository.TransactionRepository;
 import com.example.servicoderemessawallet.repository.WalletRepository;
-import javax.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
+import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class WalletEventConsumer {
@@ -28,41 +31,57 @@ public class WalletEventConsumer {
 
     @Transactional
     @RabbitListener(queues = "${rabbitmq.queue}")
-    public void processWalletEvent(Transaction transaction) {
+    public void processWalletEvent(TransactionDTO transactionDTO) {
         try {
-            logger.info("Transação recebida: {}", transaction);
+            logger.info("Transação recebida: {}", transactionDTO);
 
-            // Verifica se a transação já foi processada anteriormente
-            if (transactionRepository.existsById(transaction.getId())) {
+            if (isTransactionProcessed(transactionDTO.getWalletId())) {
                 logger.warn("Transação já processada anteriormente. Ignorando...");
                 return;
             }
 
-            // Busca a Wallet do usuário de origem (fromUserId)
-            Optional<Wallet> optionalFromWallet = walletRepository.findByUserId(transaction.getFromUserId());
-            Wallet fromWallet = optionalFromWallet.orElseThrow(() ->
-                    new RuntimeException("Wallet não encontrada para o usuário de origem da transação."));
+            Wallet fromWallet = getWalletByUserId(transactionDTO.getFromUserId());
+            validateSufficientBalance(fromWallet, transactionDTO.getAmountBrl());
+            updateWalletBalance(fromWallet, transactionDTO.getAmountBrl());
 
-            // Verifica se há saldo suficiente para realizar a transação
-            BigDecimal transactionAmount = transaction.getAmountBrl();
-            BigDecimal currentBalance = fromWallet.getBalanceBrl();
-            if (currentBalance.compareTo(transactionAmount) < 0) {
-                throw new RuntimeException("Saldo insuficiente na Wallet do usuário de origem.");
-            }
-
-            // Atualiza o saldo da Wallet de origem (subtrai o valor da transação)
-            fromWallet.setBalanceBrl(currentBalance.subtract(transactionAmount));
-
-            // Salva a Wallet de origem atualizada
-            walletRepository.save(fromWallet);
-
-            // Marca a transação como processada
-            transactionRepository.save(transaction);
-
+            saveTransaction(transactionDTO);
             logger.info("Transação processada com sucesso. Wallet de origem atualizada: {}", fromWallet);
 
         } catch (Exception e) {
-            logger.error("Erro ao processar mensagem do RabbitMQ: {}", transaction, e);
+            logger.error("Erro ao processar mensagem do RabbitMQ: {}", transactionDTO, e);
         }
+    }
+
+    private boolean isTransactionProcessed(UUID transactionId) {
+        return transactionRepository.existsById(transactionId);
+    }
+
+    private Wallet getWalletByUserId(UUID userId) {
+        return walletRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Wallet não encontrada para o usuário de origem da transação."));
+    }
+
+    private void validateSufficientBalance(Wallet wallet, BigDecimal transactionAmount) {
+        if (wallet.getBalanceBrl().compareTo(transactionAmount) < 0) {
+            throw new RuntimeException("Saldo insuficiente na Wallet do usuário de origem.");
+        }
+    }
+
+    private void updateWalletBalance(Wallet wallet, BigDecimal transactionAmount) {
+        wallet.setBalanceBrl(wallet.getBalanceBrl().subtract(transactionAmount));
+        walletRepository.save(wallet);
+    }
+
+    private void saveTransaction(TransactionDTO transactionDTO) {
+        Transaction transaction = new Transaction();
+        transaction.setWalletId(transactionDTO.getWalletId());
+        transaction.setFromUserId(transactionDTO.getFromUserId());
+        transaction.setToUserId(transactionDTO.getToUserId());
+        transaction.setAmountBrl(transactionDTO.getAmountBrl());
+        transaction.setExchangeRate(transactionDTO.getExchangeRate());
+        transaction.setAmountUsd(transactionDTO.getAmountUsd());
+        transaction.setDate(transactionDTO.getDate());
+        transaction.setStatus(transactionDTO.getStatus() != null ? transactionDTO.getStatus() : TransactionStatusEnum.PENDING);
+        transactionRepository.save(transaction);
     }
 }
