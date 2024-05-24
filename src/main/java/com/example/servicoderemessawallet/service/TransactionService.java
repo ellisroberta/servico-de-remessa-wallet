@@ -1,13 +1,14 @@
 package com.example.servicoderemessawallet.service;
 
+import com.example.servicoderemessawallet.dto.TransactionDTO;
 import com.example.servicoderemessawallet.enums.TransactionStatusEnum;
 import com.example.servicoderemessawallet.exception.InsufficientBalanceException;
 import com.example.servicoderemessawallet.exception.WalletNotFoundException;
-import com.example.servicoderemessawallet.model.ExchangeRate;
 import com.example.servicoderemessawallet.model.Transaction;
 import com.example.servicoderemessawallet.model.Wallet;
 import com.example.servicoderemessawallet.repository.TransactionRepository;
 import com.example.servicoderemessawallet.repository.WalletRepository;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,12 +24,16 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final ExchangeRateService exchangeRateService;
 
+    private final RabbitTemplate rabbitTemplate;
+
     public TransactionService(WalletRepository walletRepository,
                               TransactionRepository transactionRepository,
-                              ExchangeRateService exchangeRateService) {
+                              ExchangeRateService exchangeRateService,
+                              RabbitTemplate rabbitTemplate) {
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
         this.exchangeRateService = exchangeRateService;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     public List<Transaction> getAllTransactions() {
@@ -41,7 +46,7 @@ public class TransactionService {
     }
 
     @Transactional
-    public Transaction createTransaction(UUID fromUserId, UUID toUserId, BigDecimal amountBrl) {
+    public void createAndSendTransaction(UUID fromUserId, UUID toUserId, BigDecimal amountBrl) {
         Wallet fromWallet = walletRepository.findByUserId(fromUserId)
                 .orElseThrow(() -> new WalletNotFoundException("Carteira não encontrada para o usuário: " + fromUserId));
 
@@ -61,16 +66,45 @@ public class TransactionService {
         walletRepository.save(fromWallet);
         walletRepository.save(toWallet);
 
+        TransactionDTO transactionDTO = new TransactionDTO();
+        transactionDTO.setWalletId(fromWallet.getId());
+        transactionDTO.setFromUserId(fromUserId);
+        transactionDTO.setToUserId(toUserId);
+        transactionDTO.setAmountBrl(amountBrl);
+        transactionDTO.setAmountUsd(amountUsd);
+        transactionDTO.setExchangeRate(exchangeRate);
+        transactionDTO.setStatus(TransactionStatusEnum.PENDING);
+
+        // Envio da transação para o microsserviço Wallet através de RabbitMQ
+        rabbitTemplate.convertAndSend("exchange", "routingKey", transactionDTO);
+    }
+
+    @Transactional
+    public void processTransaction(TransactionDTO transactionDTO) {
+        // Lógica para processar a transação recebida do DTO
+        Wallet fromWallet = walletRepository.findByUserId(transactionDTO.getFromUserId())
+                .orElseThrow(() -> new WalletNotFoundException("Carteira não encontrada para o usuário: " + transactionDTO.getFromUserId()));
+
+        Wallet toWallet = walletRepository.findByUserId(transactionDTO.getToUserId())
+                .orElseThrow(() -> new WalletNotFoundException("Carteira não encontrada para o usuário: " + transactionDTO.getToUserId()));
+
+        fromWallet.setBalanceBrl(fromWallet.getBalanceBrl().subtract(transactionDTO.getAmountBrl()));
+        toWallet.setBalanceUsd(toWallet.getBalanceUsd().add(transactionDTO.getAmountUsd()));
+
+        walletRepository.save(fromWallet);
+        walletRepository.save(toWallet);
+
+        // Salvar a transação no repositório
         Transaction transaction = Transaction.builder()
-                .walletId(fromWallet.getId())
-                .fromUserId(fromUserId)
-                .toUserId(toUserId)
-                .amountBrl(amountBrl)
-                .amountUsd(amountUsd)
-                .exchangeRate(exchangeRate)
-                .status(TransactionStatusEnum.PENDING)
+                .walletId(transactionDTO.getWalletId())
+                .fromUserId(transactionDTO.getFromUserId())
+                .toUserId(transactionDTO.getToUserId())
+                .amountBrl(transactionDTO.getAmountBrl())
+                .amountUsd(transactionDTO.getAmountUsd())
+                .exchangeRate(transactionDTO.getExchangeRate())
+                .status(transactionDTO.getStatus())
                 .build();
 
-        return transactionRepository.save(transaction);
+        transactionRepository.save(transaction);
     }
 }

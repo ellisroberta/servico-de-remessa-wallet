@@ -28,4 +28,7 @@ public class Wallet implements Serializable {
     private BigDecimal balanceBrl;
     @Column(name = "balance_usd", nullable = false)
     private BigDecimal balanceUsd;
+
+    public Wallet(UUID walletId, BigDecimal bigDecimal, BigDecimal bigDecimal1) {
+    }
 }
