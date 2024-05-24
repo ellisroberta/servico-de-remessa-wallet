@@ -19,7 +19,7 @@ import java.util.UUID;
 public class Wallet implements Serializable {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
     private UUID userId;

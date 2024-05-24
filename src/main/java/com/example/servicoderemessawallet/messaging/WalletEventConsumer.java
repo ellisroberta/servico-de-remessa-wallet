@@ -2,6 +2,7 @@ package com.example.servicoderemessawallet.messaging;
 
 import com.example.servicoderemessawallet.dto.TransactionDTO;
 import com.example.servicoderemessawallet.enums.TransactionStatusEnum;
+import com.example.servicoderemessawallet.exception.InsufficientBalanceException;
 import com.example.servicoderemessawallet.exception.WalletNotFoundException;
 import com.example.servicoderemessawallet.model.Transaction;
 import com.example.servicoderemessawallet.model.Wallet;
@@ -68,7 +69,7 @@ public class WalletEventConsumer {
 
     private void validateSufficientBalance(Wallet wallet, BigDecimal transactionAmount) {
         if (wallet.getBalanceBrl().compareTo(transactionAmount) < 0) {
-            throw new RuntimeException("Saldo insuficiente na Wallet do usuário de origem.");
+            throw new InsufficientBalanceException("Saldo insuficiente na Wallet do usuário de origem.");
         }
     }
 

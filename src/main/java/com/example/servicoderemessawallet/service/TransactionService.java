@@ -44,14 +44,15 @@ public class TransactionService {
         return transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new RuntimeException("Transação não encontrada: " + transactionId));
     }
+    private Wallet getWalletByUserId(UUID userId) throws WalletNotFoundException {
+        return walletRepository.findByUserId(userId)
+                .orElseThrow(() -> new WalletNotFoundException("Carteira não encontrada para o usuário: " + userId));
+    }
 
     @Transactional
     public void createAndSendTransaction(UUID fromUserId, UUID toUserId, BigDecimal amountBrl) {
-        Wallet fromWallet = walletRepository.findByUserId(fromUserId)
-                .orElseThrow(() -> new WalletNotFoundException("Carteira não encontrada para o usuário: " + fromUserId));
-
-        Wallet toWallet = walletRepository.findByUserId(toUserId)
-                .orElseThrow(() -> new WalletNotFoundException("Carteira não encontrada para o usuário: " + toUserId));
+        Wallet fromWallet = getWalletByUserId(fromUserId);
+        Wallet toWallet = getWalletByUserId(toUserId);
 
         if (fromWallet.getBalanceBrl().compareTo(amountBrl) < 0) {
             throw new InsufficientBalanceException("Saldo insuficiente na carteira de origem");
@@ -81,12 +82,8 @@ public class TransactionService {
 
     @Transactional
     public void processTransaction(TransactionDTO transactionDTO) {
-        // Lógica para processar a transação recebida do DTO
-        Wallet fromWallet = walletRepository.findByUserId(transactionDTO.getFromUserId())
-                .orElseThrow(() -> new WalletNotFoundException("Carteira não encontrada para o usuário: " + transactionDTO.getFromUserId()));
-
-        Wallet toWallet = walletRepository.findByUserId(transactionDTO.getToUserId())
-                .orElseThrow(() -> new WalletNotFoundException("Carteira não encontrada para o usuário: " + transactionDTO.getToUserId()));
+        Wallet fromWallet = getWalletByUserId(transactionDTO.getFromUserId());
+        Wallet toWallet = getWalletByUserId(transactionDTO.getToUserId());
 
         fromWallet.setBalanceBrl(fromWallet.getBalanceBrl().subtract(transactionDTO.getAmountBrl()));
         toWallet.setBalanceUsd(toWallet.getBalanceUsd().add(transactionDTO.getAmountUsd()));

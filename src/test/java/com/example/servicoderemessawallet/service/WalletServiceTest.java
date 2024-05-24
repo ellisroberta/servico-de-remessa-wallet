@@ -17,11 +17,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class WalletServiceTest {
+class WalletServiceTest {
 
     @Mock
     private WalletRepository walletRepository;
@@ -31,7 +30,7 @@ public class WalletServiceTest {
 
     @Test
     @DisplayName("Teste do método getWalletByUserId - Encontrado")
-    public void testGetWalletByUserIdFound() {
+    void testGetWalletByUserIdFound() {
         // Given
         UUID userId = UUID.randomUUID();
         Wallet wallet = Wallet.builder()
@@ -55,7 +54,7 @@ public class WalletServiceTest {
 
     @Test
     @DisplayName("Teste do método getWalletByUserId - Não encontrado")
-    public void testGetWalletByUserIdNotFound() {
+    void testGetWalletByUserIdNotFound() {
         // Given
         UUID userId = UUID.randomUUID();
         when(walletRepository.findByUserId(userId)).thenReturn(Optional.empty());
@@ -71,7 +70,7 @@ public class WalletServiceTest {
 
     @Test
     @DisplayName("Teste do método getAllWallets")
-    public void testGetAllWallets() {
+    void testGetAllWallets() {
         // Given
         Wallet wallet1 = Wallet.builder()
                 .id(UUID.randomUUID())
@@ -101,7 +100,7 @@ public class WalletServiceTest {
 
     @Test
     @DisplayName("Teste do método createWallet")
-    public void testCreateWallet() {
+    void testCreateWallet() {
         // Given
         Wallet walletToSave = Wallet.builder()
                 .balanceBrl(BigDecimal.ZERO)
@@ -122,12 +121,12 @@ public class WalletServiceTest {
         Assertions.assertEquals(walletToSave.getBalanceBrl(), createdWallet.getBalanceBrl());
         Assertions.assertEquals(walletToSave.getBalanceUsd(), createdWallet.getBalanceUsd());
 
-        verify(walletRepository, times(1)).save(eq(walletToSave));
+        verify(walletRepository, times(1)).save(walletToSave);
     }
 
     @Test
     @DisplayName("Teste do método updateWallet - Encontrado")
-    public void testUpdateWalletFound() {
+    void testUpdateWalletFound() {
         // Given
         UUID walletId = UUID.randomUUID();
         Wallet existingWallet = Wallet.builder()
@@ -154,12 +153,12 @@ public class WalletServiceTest {
         Assertions.assertEquals(updatedWallet.getBalanceUsd(), updated.getBalanceUsd());
 
         verify(walletRepository, times(1)).findById(walletId);
-        verify(walletRepository, times(1)).save(eq(existingWallet));
+        verify(walletRepository, times(1)).save(existingWallet);
     }
 
     @Test
     @DisplayName("Teste do método updateWallet - Não encontrado")
-    public void testUpdateWalletNotFound() {
+    void testUpdateWalletNotFound() {
         // Given
         UUID walletId = UUID.randomUUID();
         when(walletRepository.findById(walletId)).thenReturn(Optional.empty());
@@ -176,7 +175,7 @@ public class WalletServiceTest {
 
     @Test
     @DisplayName("Teste do método deleteWallet")
-    public void testDeleteWallet() {
+    void testDeleteWallet() {
         // Given
         UUID walletId = UUID.randomUUID();
 

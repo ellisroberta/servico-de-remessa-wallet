@@ -7,21 +7,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
-import java.util.Map;
 
 @Configuration
 public class HibernateConfig {
 
     @Bean
     public HibernatePropertiesCustomizer hibernatePropertiesCustomizer(List<TypeContributor> typeContributors) {
-        return new HibernatePropertiesCustomizer() {
-            @Override
-            public void customize(Map<String, Object> hibernateProperties) {
-                if (hibernateProperties.get("hibernate.type_contributors") instanceof EntityManagerFactoryBuilderImpl) {
-                    hibernateProperties.put("hibernate.type_contributors", typeContributors);
-                }
+        return hibernateProperties -> {
+            if (hibernateProperties.get("hibernate.type_contributors") instanceof EntityManagerFactoryBuilderImpl) {
+                hibernateProperties.put("hibernate.type_contributors", typeContributors);
             }
         };
     }
 }
-

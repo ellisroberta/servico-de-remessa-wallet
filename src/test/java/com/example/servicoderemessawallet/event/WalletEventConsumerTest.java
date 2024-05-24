@@ -21,7 +21,7 @@ import java.util.UUID;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class WalletEventConsumerTest {
+class WalletEventConsumerTest {
 
     @Mock
     private TransactionRepository transactionRepository;
@@ -34,7 +34,7 @@ public class WalletEventConsumerTest {
 
     @Test
     @DisplayName("Deve processar transação com sucesso")
-    public void testProcessWalletEventSuccess() {
+    void testProcessWalletEventSuccess() {
         UUID transactionId = UUID.randomUUID();
         UUID walletId = UUID.randomUUID();
         UUID fromUserId = UUID.randomUUID();
@@ -67,7 +67,7 @@ public class WalletEventConsumerTest {
 
     @Test
     @DisplayName("Deve lidar com Wallet não encontrada")
-    public void testProcessWalletEventWalletNotFound() {
+    void testProcessWalletEventWalletNotFound() {
         UUID fromUserId = UUID.randomUUID();
         UUID walletId = UUID.randomUUID();
         UUID toUserId = UUID.randomUUID();
@@ -97,7 +97,7 @@ public class WalletEventConsumerTest {
 
     @Test
     @DisplayName("Deve lidar com saldo insuficiente na Wallet")
-    public void testProcessWalletEventInsufficientBalance() {
+    void testProcessWalletEventInsufficientBalance() {
         UUID walletId = UUID.randomUUID();
         UUID fromUserId = UUID.randomUUID();
         UUID toUserId = UUID.randomUUID();

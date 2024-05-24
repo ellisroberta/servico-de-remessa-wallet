@@ -22,7 +22,7 @@ import java.util.UUID;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class TransactionServiceTest {
+class TransactionServiceTest {
 
     @Mock
     private TransactionRepository transactionRepository;
@@ -41,7 +41,7 @@ public class TransactionServiceTest {
 
     @Test
     @DisplayName("Teste de criação de transação - Sucesso")
-    public void testCreateTransactionSuccess() {
+    void testCreateTransactionSuccess() {
         // Given
         UUID fromUserId = UUID.randomUUID();
         UUID toUserId = UUID.randomUUID();
@@ -84,7 +84,7 @@ public class TransactionServiceTest {
 
     @Test
     @DisplayName("Teste de criação de transação - Saldo Insuficiente")
-    public void testCreateTransactionInsufficientBalance() {
+    void testCreateTransactionInsufficientBalance() {
         // Given
         UUID fromUserId = UUID.randomUUID();
         UUID toUserId = UUID.randomUUID();
@@ -126,7 +126,7 @@ public class TransactionServiceTest {
 
     @Test
     @DisplayName("Teste de criação de transação - Carteira não encontrada")
-    public void testCreateTransactionWalletNotFound() {
+    void testCreateTransactionWalletNotFound() {
         // Given
         UUID fromUserId = UUID.randomUUID();
         UUID toUserId = UUID.randomUUID();
