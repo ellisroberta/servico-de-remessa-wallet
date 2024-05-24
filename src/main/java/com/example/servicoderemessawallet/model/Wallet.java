@@ -1,6 +1,6 @@
 package com.example.servicoderemessawallet.model;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +21,8 @@ public class Wallet implements Serializable {
     @Id
     @GeneratedValue
     private UUID id;
+
+    private UUID userId;
 
     @Column(name = "balance_brl", nullable = false)
     private BigDecimal balanceBrl;

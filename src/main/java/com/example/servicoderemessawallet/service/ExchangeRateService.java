@@ -55,6 +55,11 @@ public class ExchangeRateService {
     }
 
     public void updateDollarExchangeRate(LocalDate date) {
+        if (isWeekend(date)) {
+            System.out.println("É final de semana. Usando a última cotação disponível.");
+            return;
+        }
+
         // Utilizado para testes com datas específicas
         updateExchangeRateForDate(date);
     }

@@ -1,8 +1,6 @@
 package com.example.servicoderemessawallet.listener;
 
-import com.example.servicoderemessawallet.service.ExchangeRateService;
 import com.example.servicoderemessawallet.service.TransactionService;
-import com.example.servicoderemessawallet.service.WalletService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
@@ -13,15 +11,9 @@ import java.util.UUID;
 public class TransactionListener {
 
     private final TransactionService transactionService;
-    private final WalletService walletService;
-    private final ExchangeRateService exchangeRateService;
 
-    public TransactionListener(TransactionService transactionService,
-                               WalletService walletService,
-                               ExchangeRateService exchangeRateService){
+    public TransactionListener(TransactionService transactionService){
         this.transactionService = transactionService;
-        this.walletService = walletService;
-        this.exchangeRateService = exchangeRateService;
     }
 
     @RabbitListener(queues = "transactionQueue")

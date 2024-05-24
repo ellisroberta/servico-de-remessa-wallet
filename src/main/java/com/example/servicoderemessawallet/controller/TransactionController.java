@@ -18,7 +18,7 @@ import java.util.UUID;
 @Api(tags = "Transações")
 public class TransactionController {
 
-    private TransactionService transactionService;
+    private final TransactionService transactionService;
 
     public TransactionController (TransactionService transactionService){
         this.transactionService = transactionService;

@@ -3,12 +3,13 @@ package com.example.servicoderemessawallet.service;
 import com.example.servicoderemessawallet.enums.TransactionStatusEnum;
 import com.example.servicoderemessawallet.exception.InsufficientBalanceException;
 import com.example.servicoderemessawallet.exception.WalletNotFoundException;
+import com.example.servicoderemessawallet.model.ExchangeRate;
 import com.example.servicoderemessawallet.model.Transaction;
 import com.example.servicoderemessawallet.model.Wallet;
 import com.example.servicoderemessawallet.repository.TransactionRepository;
 import com.example.servicoderemessawallet.repository.WalletRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -72,5 +73,4 @@ public class TransactionService {
 
         return transactionRepository.save(transaction);
     }
-
 }

@@ -14,7 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -54,7 +54,7 @@ public class WalletEventConsumerTest {
                     .build();
 
             transaction.setId(transactionId); // Define o ID da transação manualmente (normalmente gerado pelo banco de dados)
-            transaction.setDate(LocalDateTime.now()); // Define a data atual
+            transaction.setDate(LocalDate.now()); // Define a data atual
 
             // Mock da Wallet de origem
             Wallet fromWallet = new Wallet(walletId, new BigDecimal("500.00"), new BigDecimal("200.00"));
@@ -84,7 +84,7 @@ public class WalletEventConsumerTest {
                     .status(TransactionStatusEnum.PENDING)
                     .build();
 
-            transaction.setDate(LocalDateTime.now()); // Define a data atual
+            transaction.setDate(LocalDate.now()); // Define a data atual
 
             // Mock do Optional retornado pelo repository (vazio)
             when(walletRepository.findByUserId(fromUserId)).thenReturn(Optional.empty());
@@ -111,7 +111,7 @@ public class WalletEventConsumerTest {
                     .amountUsd(BigDecimal.ZERO)
                     .status(TransactionStatusEnum.PENDING)
                     .build();
-            transaction.setDate(LocalDateTime.now()); // Define a data atual
+            transaction.setDate(LocalDate.now()); // Define a data atual
 
             // Mock da Wallet de origem
             Wallet fromWallet = new Wallet(walletId, new BigDecimal("500.00"), BigDecimal.ZERO);
